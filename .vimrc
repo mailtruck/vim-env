@@ -53,5 +53,8 @@ set autoindent
 set number
 autocmd VimEnter * set autoindent
 
+
+hi MatchParen cterm=bold ctermbg=none ctermfg=magenta
+
 execute pathogen#infect()
 call pathogen#helptags()
