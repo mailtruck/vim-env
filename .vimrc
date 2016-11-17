@@ -14,24 +14,18 @@ runtime! debian.vim
 " options, so any other options should be set AFTER setting 'compatible'.
 "set compatible
 
-" Vim5 and later versions support syntax highlighting. Uncommenting the next
-" line enables syntax highlighting by default.
 if has("syntax")
   syntax on
 endif
 
-" If using a dark background within the editing area and syntax highlighting
-" turn on this option as well
-"set background=dark
+ set background=dark
 
-" Uncomment the following to have Vim jump to the last position when
-" reopening a file
+" Have Vim jump to the last position when reopening a file
 if has("autocmd")
   au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 endif
 
-" Uncomment the following to have Vim load indentation rules and plugins
-" according to the detected filetype.
+" Load indentation rules and plugins according to the detected filetype.
 if has("autocmd")
   filetype plugin indent on
 endif
@@ -45,7 +39,7 @@ endif
 "set incsearch		" Incremental search
 "set autowrite		" Automatically save before commands like :next and :make
 "set hidden		" Hide buffers when they are abandoned
-set mouse=a		" Enable mouse usage (all modes)
+"set mouse=a		" Enable mouse usage (all modes)
 
 " Source a global configuration file if available
 if filereadable("/etc/vim/vimrc.local")
@@ -56,7 +50,7 @@ set expandtab
 set shiftwidth=2
 set softtabstop=2
 set autoindent
-
+set number
 autocmd VimEnter * set autoindent
 
 execute pathogen#infect()
