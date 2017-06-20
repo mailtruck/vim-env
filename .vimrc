@@ -7,12 +7,13 @@
 
 " This line should not be removed as it ensures that various options are
 " properly set to work with the Vim-related packages available in Debian.
-runtime! debian.vim
+" runtime! debian.vim
 
 " Uncomment the next line to make Vim more Vi-compatible
 " NOTE: debian.vim sets 'nocompatible'.  Setting 'compatible' changes numerous
-" options, so any other options should be set AFTER setting 'compatible'.
+" optons, so any other options should be set AFTER setting 'compatible'.
 "set compatible
+let mapleader = " "
 
 if has("syntax")
   syntax on
@@ -49,6 +50,10 @@ endif
 set expandtab
 set shiftwidth=2
 set softtabstop=2
+
+
+autocmd BufNewFile,BufRead *.go set shiftwidth=8
+autocmd BufNewFile,BufRead *.go set softtabstop=8
 set autoindent
 set number
 autocmd VimEnter * set autoindent
@@ -58,3 +63,31 @@ hi MatchParen cterm=bold ctermbg=none ctermfg=magenta
 
 execute pathogen#infect()
 call pathogen#helptags()
+set runtimepath^=~/.vim/bundle/ctrlp.vim
+
+
+map <C-n> :NERDTreeToggle<CR>
+
+
+if has("gui_running")
+  colorscheme molokai
+endif
+colorscheme molokai
+
+set noswapfile
+set term=screen-256color
+
+set laststatus=2
+highlight ExtraWhitespace ctermbg=red guibg=red
+match ExtraWhitespace /\s\+$/
+
+hi CursorLine   cterm=NONE ctermbg=darkred ctermfg=white guibg=darkred guifg=white
+hi CursorColumn cterm=NONE ctermbg=darkred ctermfg=white guibg=darkred guifg=white
+nnoremap <Leader>c :set cursorline! cursorcolumn!<CR>
+set rtp+=/usr/local/opt/fzf
+
+syn match Oddlines "^.*$" contains=ALL nextgroup=Evenlines skipnl
+syn match Evenlines "^.*$" contains=ALL nextgroup=Oddlines skipnl
+
+hi Oddlines ctermbg=blue guibg=#FFFF99 
+hi Evenlines ctermbg=magenta guibg=#FFCCFF
