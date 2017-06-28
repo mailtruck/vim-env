@@ -91,3 +91,5 @@ syn match Evenlines "^.*$" contains=ALL nextgroup=Oddlines skipnl
 
 hi Oddlines ctermbg=blue guibg=#FFFF99 
 hi Evenlines ctermbg=magenta guibg=#FFCCFF
+
+let g:go_fmt_command = "goimports"
