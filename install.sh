@@ -3,6 +3,5 @@
 cd ..
 mv .vimrc .vimrc.bak
 mv .vim .vim.bak
-ln -s vimrc/.vimrc .vimrc
-ln -s ./vimrc/.vim/ .vim
-
+ln -s ./vim-env/.vimrc .vimrc
+ln -s ./vim-env/.vim/ .vim
