@@ -10,6 +10,10 @@ if !exists("g:go_metalinter_enabled")
   let g:go_metalinter_enabled = ['vet', 'golint', 'errcheck']
 endif
 
+if !exists("g:go_metalinter_excludes")
+  let g:go_metalinter_excludes = []
+endif
+
 if !exists("g:go_golint_bin")
   let g:go_golint_bin = "golint"
 endif
@@ -38,6 +42,10 @@ function! go#lint#Gometa(autosave, ...) abort
     let linters = a:autosave ? g:go_metalinter_autosave_enabled : g:go_metalinter_enabled
     for linter in linters
       let cmd += ["--enable=".linter]
+    endfor
+
+    for exclude in g:go_metalinter_excludes
+      let cmd += ["--exclude=".exclude]
     endfor
 
     " path
@@ -113,14 +121,14 @@ function! go#lint#Golint(...) abort
   if empty(bin_path)
     return
   endif
+  let bin_path = go#util#Shellescape(bin_path)
 
   if a:0 == 0
-    let goargs = shellescape(expand('%'))
+    let out = go#util#System(bin_path . " " . go#util#Shellescape(go#package#ImportPath()))
   else
-    let goargs = go#util#Shelljoin(a:000)
+    let out = go#util#System(bin_path . " " . go#util#Shelljoin(a:000))
   endif
 
-  let out = go#util#System(bin_path . " " . goargs)
   if empty(out)
     echon "vim-go: " | echohl Function | echon "[lint] PASS" | echohl None
     return
@@ -139,9 +147,9 @@ function! go#lint#Vet(bang, ...) abort
   call go#cmd#autowrite()
   echon "vim-go: " | echohl Identifier | echon "calling vet..." | echohl None
   if a:0 == 0
-    let out = go#tool#ExecuteInDir('go vet')
+    let out = go#util#System('go vet ' . go#util#Shellescape(go#package#ImportPath()))
   else
-    let out = go#tool#ExecuteInDir('go tool vet ' . go#util#Shelljoin(a:000))
+    let out = go#util#System('go tool vet ' . go#util#Shelljoin(a:000))
   endif
 
   let l:listtype = "quickfix"
@@ -164,13 +172,13 @@ endfunction
 " the location list
 function! go#lint#Errcheck(...) abort
   if a:0 == 0
-    let goargs = go#package#ImportPath(expand('%:p:h'))
-    if goargs == -1
+    let import_path = go#package#ImportPath()
+    if import_path == -1
       echohl Error | echomsg "vim-go: package is not inside GOPATH src" | echohl None
       return
     endif
   else
-    let goargs = go#util#Shelljoin(a:000)
+    let import_path = go#util#Shelljoin(a:000)
   endif
 
   let bin_path = go#path#CheckBinPath(g:go_errcheck_bin)
@@ -181,7 +189,7 @@ function! go#lint#Errcheck(...) abort
   echon "vim-go: " | echohl Identifier | echon "errcheck analysing ..." | echohl None
   redraw
 
-  let command = bin_path . ' -abspath ' . goargs
+  let command =  go#util#Shellescape(bin_path) . ' -abspath ' . import_path
   let out = go#tool#ExecuteInDir(command)
 
   let l:listtype = "quickfix"
@@ -192,7 +200,6 @@ function! go#lint#Errcheck(...) abort
     call go#list#ParseFormat(l:listtype, errformat, split(out, "\n"), 'Errcheck')
 
     let errors = go#list#Get(l:listtype)
-
     if empty(errors)
       echohl Error | echomsg "GoErrCheck returned error" | echohl None
       echo out
@@ -200,6 +207,7 @@ function! go#lint#Errcheck(...) abort
     endif
 
     if !empty(errors)
+      echohl Error | echomsg "GoErrCheck found errors" | echohl None
       call go#list#Populate(l:listtype, errors, 'Errcheck')
       call go#list#Window(l:listtype, len(errors))
       if !empty(errors)
@@ -244,31 +252,30 @@ function s:lint_job(args)
   function! s:callback(chan, msg) closure
     let old_errorformat = &errorformat
     let &errorformat = l:errformat
-    caddexpr a:msg
+    if l:listtype == "locationlist"
+      lad a:msg
+    elseif l:listtype == "quickfix"
+      caddexpr a:msg
+    endif
     let &errorformat = old_errorformat
 
-    " TODO(arslan): cursor still jumps to first error even If I don't want
-    " it. Seems like there is a regression somewhere, but not sure where.
-    copen
+    " TODO(jinleileiking): give a configure to jump or not
+    let l:winnr = winnr()
+
+    let errors = go#list#Get(l:listtype)
+    call go#list#Window(l:listtype, len(errors))
+
+    exe l:winnr . "wincmd w"
   endfunction
 
-  function! s:close_cb(chan) closure
-    let l:job = ch_getjob(a:chan)
-    let l:status = job_status(l:job)
-
-    let exitval = 1
-    if l:status == "dead"
-      let l:info = job_info(l:job)
-      let exitval = l:info.exitval
-    endif
-
+  function! s:exit_cb(job, exitval) closure
     let status = {
           \ 'desc': 'last status',
           \ 'type': "gometaliner",
           \ 'state': "finished",
           \ }
 
-    if exitval
+    if a:exitval
       let status.state = "failed"
     endif
 
@@ -297,7 +304,7 @@ function s:lint_job(args)
 
   let start_options = {
         \ 'callback': funcref("s:callback"),
-        \ 'close_cb': funcref("s:close_cb"),
+        \ 'exit_cb': funcref("s:exit_cb"),
         \ }
 
   call job_start(a:args.cmd, start_options)
