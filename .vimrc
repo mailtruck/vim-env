@@ -19,6 +19,8 @@ Plugin 'kien/ctrlp.vim'
 
 Plugin 'fatih/vim-go'
 
+Plugin 'scrooloose/nerdtree'
+
 Plugin 'phpcomplete.vim'
 " " plugin from http://vim-scripts.org/vim/scripts.html
 " " Plugin 'L9'
@@ -73,7 +75,7 @@ if has("syntax")
   syntax on
 endif
 
- set background=dark
+ set background=light
 
 " Have Vim jump to the last position when reopening a file
 if has("autocmd")
@@ -121,12 +123,6 @@ set runtimepath^=~/.vim/bundle/ctrlp.vim
 
 
 map <C-n> :NERDTreeToggle<CR>
-
-
-"if has("gui_running")
-"  colorscheme molokai
-"endif
-" colorscheme molokai
 
 set noswapfile
 set term=screen-256color
