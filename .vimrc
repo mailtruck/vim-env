@@ -79,4 +79,6 @@ autocmd FileType php set omnifunc=phpcomplete#CompletePHP
 set relativenumber
 
 let maplocalleader = "\\"
+set background=dark
+hi Visual term=reverse cterm=reverse guibg=Grey
 
