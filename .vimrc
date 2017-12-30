@@ -81,4 +81,6 @@ set relativenumber
 let maplocalleader = "\\"
 set background=dark
 hi Visual term=reverse cterm=reverse guibg=Grey
+set nocp
+set backspace=indent,eol,start
 
